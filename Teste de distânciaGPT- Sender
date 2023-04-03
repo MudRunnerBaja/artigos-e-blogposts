@@ -1,0 +1,40 @@
+#include <stdio.h>
+#include "pico/stdlib.h"
+#include "hardware/uart.h"
+
+// Define the pins for the HC-12 module
+#define HC12_TX_PIN 0
+#define HC12_RX_PIN 1
+
+// Set the baud rate for the HC-12 module
+#define HC12_BAUD_RATE 9600
+
+// Define a buffer to store incoming data from the HC-12 module
+char buffer[128];
+
+int main() {
+    // Initialize the standard I/O library
+    stdio_init_all();
+
+    // Initialize the UART for communication with the HC-12 module
+    uart_init(UART_ID, HC12_BAUD_RATE);
+    gpio_set_function(HC12_TX_PIN, GPIO_FUNC_UART);
+    gpio_set_function(HC12_RX_PIN, GPIO_FUNC_UART);
+    uart_set_hw_flow(UART_ID, false, false);
+    uart_set_format(UART_ID, 8, 1, UART_PARITY_NONE);
+    uart_set_fifo_enabled(UART_ID, false);
+
+    // Enable UART interrupts
+    uart_set_irq_enables(UART_ID, true, false);
+
+    // Wait for incoming data from the HC-12 module
+    while (true) {
+        // Read incoming data from the HC-12 module
+        int len = uart_read_blocking(UART_ID, buffer, sizeof(buffer));
+
+        // Print the received data to the serial console
+        printf("Received %d bytes: %.*s\n", len, len, buffer);
+    }
+
+    return 0;
+}
